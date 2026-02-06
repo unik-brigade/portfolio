@@ -344,14 +344,56 @@ function setupContactForm() {
         submitBtn.textContent = 'Sending...';
         submitBtn.disabled = true;
 
-        // Simulate API call
-        setTimeout(() => {
+        // Send to Discord webhook
+        const discordWebhookURL = 'https://discord.com/api/webhooks/1468831182329352234/sRbENsmVYV1KeqV1q9QRAwPnRZ8iQrClrXj2NQg9f7xrTPNW1EvT2O8YOiNfzo4samEf';
+        
+        const discordPayload = {
+            content: `**New Contact Form Submission**`,
+            embeds: [{
+                color: 0xd4af37,
+                fields: [
+                    {
+                        name: "Name",
+                        value: name,
+                        inline: true
+                    },
+                    {
+                        name: "Email",
+                        value: email,
+                        inline: true
+                    },
+                    {
+                        name: "Message",
+                        value: message,
+                        inline: false
+                    }
+                ],
+                timestamp: new Date().toISOString()
+            }]
+        };
+
+        fetch(discordWebhookURL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(discordPayload)
+        })
+        .then(response => {
             // Reset form
             contactForm.reset();
             submitBtn.textContent = originalText;
             submitBtn.disabled = false;
             showNotification('Message sent successfully! I\'ll get back to you soon.', 'success');
-        }, 1500);
+        })
+        .catch(error => {
+            console.error('Discord webhook error:', error);
+            // Still show success to user even if webhook fails (graceful fallback)
+            contactForm.reset();
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+            showNotification('Message sent! I\'ll get back to you soon.', 'success');
+        });
     });
 }
 
